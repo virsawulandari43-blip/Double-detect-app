@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Dashboard - Sistem Deteksi Data Double</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f4f7fe;
+            color: #2b2b2b;
+        }
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease;
+        }
+        .stat-card {
+            border-radius: 16px;
+            border: none;
+            color: #fff;
+        }
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+        }
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #e3e6f0;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15);
+            border-color: #4e73df;
+        }
+        .btn-custom {
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-weight: 600;
+        }
+        .table-custom th {
+            background-color: #f8f9fc;
+            color: #4e73df;
+            font-weight: 600;
+            border-top: none;
+        }
+        .table-custom td {
+            vertical-align: middle;
+        }
+        .badge-soft-danger {
+            background-color: rgba(231, 74, 59, 0.1);
+            color: #e74a3b;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+        .badge-soft-success {
+            background-color: rgba(28, 200, 138, 0.1);
+            color: #1cc88a;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Layout Sidebar Terstruktur */
+        #dashboardSection {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid #e3e6f0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+        }
+        .sidebar-brand {
+            padding: 24px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #2b2b2b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #f0f2f8;
+        }
+        .sidebar-menu {
+            padding: 20px 15px;
+            list-style: none;
+            margin: 0;
+            flex-grow: 1;
+        }
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: #6e707e;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background-color: #4e73df;
+            color: #ffffff;
+        }
+        .sidebar-footer {
+            padding: 20px 15px;
+            border-top: 1px solid #f0f2f8;
+        }
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            background-color: #f4f7fe;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .top-navbar {
+            background: #ffffff;
+            height: 70px;
+            border-bottom: 1px solid #e3e6f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+        .content-body {
+            padding: 30px;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= SECTION 1: HALAMAN LOGIN / REGISTER (AUTH) ================= -->
+    <div id="authSection" class="container auth-wrapper">
+        <div class="row justify-content-center w-100">
+            <div class="col-md-5">
+                <div class="card shadow-lg p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-shield-check text-primary display-4"></i>
+                        <h3 class="fw-bold mt-2">DoubleDetect<span class="text-primary">.io</span></h3>
+                        <p class="text-muted small" id="authSubtitle">Silakan masuk untuk mengakses sistem</p>
+                    </div>
+
+                    <div id="authAlertBox"></div>
+
+                    <!-- FORM LOGIN -->
+                    <form id="formLogin">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                                <input type="email" class="form-control border-start-0 ps-0" id="loginEmail" placeholder="nama@example.com" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                                <input type="password" class="form-control border-start-0 ps-0" id="loginPassword" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-custom w-100 shadow-sm mb-3">Masuk Sekarang</button>
+                        <div class="text-center">
+                            <small class="text-muted">Belum punya akun? <a href="#" id="toRegister" class="text-primary fw-semibold text-decoration-none">Daftar di sini</a></small>
+                        </div>
+                    </form>
+
+                    <!-- FORM REGISTER -->
+                    <form id="formRegister" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nama Lengkap</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" id="regNama" placeholder="Nama Anda" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                                <input type="email" class="form-control border-start-0 ps-0" id="regEmail" placeholder="nama@example.com" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                                <input type="password" class="form-control border-start-0 ps-0" id="regPassword" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-custom w-100 shadow-sm mb-3">Daftar Akun</button>
+                        <div class="text-center">
+                            <small class="text-muted">Sudah punya akun? <a href="#" id="toLogin" class="text-primary fw-semibold text-decoration-none">Masuk di sini</a></small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= SECTION 2: DASHBOARD UTAMA DENGAN STRUKTUR HALAMAN (SPA) ================= -->
+    <div id="dashboardSection" class="d-none">
+        
+        <!-- SIDEBAR STRUKTUR NAVIGASI -->
+        <div class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-shield-check text-primary fs-4"></i>
+                <span>DoubleDetect</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="#" class="nav-link-custom active" data-target="pageDashboard">
+                        <i class="bi bi-grid-1x2-fill fs-5"></i>
+                        <span>Dasbor Utama</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link-custom" data-target="pageInput">
+                        <i class="bi bi-person-plus-fill fs-5"></i>
+                        <span>Input Data Baru</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link-custom" data-target="pageUtama">
+                        <i class="bi bi-table fs-5"></i>
+                        <span>Database Utama</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link-custom" data-target="pageDouble">
+                        <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+                        <span>Data Double (Ganda)</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <button id="btnBackToLogin" class="btn btn-outline-danger btn-sm w-100 py-2 rounded-3 d-flex align-items-center justify-content-center gap-2 fw-semibold">
+                    <i class="bi bi-box-arrow-left"></i>
+                    <span>Keluar / Login</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- KONTEN UTAMA KANAN -->
+        <div class="main-content">
+            <!-- Top Navbar -->
+            <div class="top-navbar">
+                <h5 class="fw-bold mb-0 text-dark" id="pageTitle">Dasbor Utama</h5>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle text-primary">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <span class="fw-semibold small" id="userGreeting">Halo, User</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Isi Konten Berdasarkan Halaman Terstruktur -->
+            <div class="content-body">
+                
+                <!-- 1. HALAMAN: DASBOR UTAMA -->
+                <div id="pageDashboard" class="page-content">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="card stat-card bg-gradient-success p-3">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-white-50 mb-1">Total Data Utama Unik</h6>
+                                        <h2 class="fw-bold mb-0" id="countUtama1">0</h2>
+                                    </div>
+                                    <div class="fs-1 text-white-50"><i class="bi bi-database-check"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card stat-card bg-gradient-danger p-3">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-white-50 mb-1">Total Data Double (Ganda)</h6>
+                                        <h2 class="fw-bold mb-0" id="countDouble1">0</h2>
+                                    </div>
+                                    <div class="fs-1 text-white-50"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm p-4 text-center py-5">
+                        <div class="py-4">
+                            <i class="bi bi-shield-fill-check display-3 text-primary mb-3"></i>
+                            <h4 class="fw-bold">Selamat Datang di Sistem Deteksi Data Ganda</h4>
+                            <p class="text-muted col-md-8 mx-auto">Gunakan menu navigasi di sebelah kiri untuk menginput data pegawai baru, melihat daftar database utama yang valid, atau memantau temuan data double secara terstruktur.</p>
+                            <button class="btn btn-primary btn-custom mt-3" onclick="switchPage('pageInput')">
+                                <i class="bi bi-plus-circle me-2"></i>Mulai Input Data Baru
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. HALAMAN: INPUT DATA -->
+                <div id="pageInput" class="page-content d-none">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-7">
+                            <div class="card shadow-sm">
+                                <div class="card-body p-4">
+                                    <h4 class="fw-bold mb-2 text-dark"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Form Input Data Pegawai</h4>
+                                    <p class="text-muted small mb-4">Masukkan data lengkap. Sistem akan otomatis mendeteksi jika NIK sudah pernah terdaftar.</p>
+                                    
+                                    <div id="alertBox"></div>
+
+                                    <form id="dataForm">
+                                        <div class="mb-3">
+                                            <label for="nama" class="form-label fw-semibold small">Nama Lengkap</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                                                <input type="text" class="form-control border-start-0 ps-0" id="nama" placeholder="Contoh: Budi Santoso" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="bidang" class="form-label fw-semibold small">Bidang / Departemen</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-briefcase text-muted"></i></span>
+                                                <input type="text" class="form-control border-start-0 ps-0" id="bidang" placeholder="Contoh: IT & Pengembangan" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label for="nik" class="form-label fw-semibold small">NIK (Nomor Induk Kependudukan)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-card-text text-muted"></i></span>
+                                                <input type="text" class="form-control border-start-0 ps-0" id="nik" placeholder="Contoh: 3201xxxxxxxxxxxx" required>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-custom w-100 shadow-sm mb-3">
+                                            <i class="bi bi-send-fill me-2"></i>Simpan & Cek Data
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. HALAMAN: DATABASE UTAMA -->
+                <div id="pageUtama" class="page-content d-none">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0 text-success"><i class="bi bi-table me-2"></i>Database Utama (Valid)</h5>
+                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill small" id="badgeCountUtama">0 Data</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-custom align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama</th>
+                                            <th>Bidang</th>
+                                            <th>NIK</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabelUtama">
+                                        <!-- Terisi via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. HALAMAN: DATA DOUBLE -->
+                <div id="pageDouble" class="page-content d-none">
+                    <div class="card shadow-sm border-danger border-opacity-25">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0 text-danger"><i class="bi bi-exclamation-octagon-fill me-2"></i>Dasbor Data Double (Duplikat)</h5>
+                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill small" id="badgeCountDouble">0 Data</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-custom align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama</th>
+                                            <th>Bidang</th>
+                                            <th>NIK</th>
+                                            <th>Keterangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabelDouble">
+                                        <!-- Terisi via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT SISTEM STRUKTUR TERPADU ================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let loggedInUser = localStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                tampilkanDashboard(loggedInUser);
+            }
+
+            // Pindah Form Auth
+            const btnToRegister = document.getElementById('toRegister');
+            if (btnToRegister) {
+                btnToRegister.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.getElementById('formLogin').classList.add('d-none');
+                    document.getElementById('formRegister').classList.remove('d-none');
+                    document.getElementById('authSubtitle').innerText = "Buat akun baru untuk mulai menggunakan sistem";
+                    document.getElementById('authAlertBox').innerHTML = "";
+                });
+            }
+
+            const btnToLogin = document.getElementById('toLogin');
+            if (btnToLogin) {
+                btnToLogin.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.getElementById('formRegister').classList.add('d-none');
+                    document.getElementById('formLogin').classList.remove('d-none');
+                    document.getElementById('authSubtitle').innerText = "Silakan masuk untuk mengakses sistem";
+                    document.getElementById('authAlertBox').innerHTML = "";
+                });
+            }
+
+            // Register Submit
+            const formRegister = document.getElementById('formRegister');
+            if (formRegister) {
+                formRegister.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    let nama = document.getElementById('regNama').value.trim();
+                    let email = document.getElementById('regEmail').value.trim();
+                    let password = document.getElementById('regPassword').value.trim();
+
+                    let users = JSON.parse(localStorage.getItem('appUsers')) || [];
+                    let userExist = users.some(u => u.email === email);
+                    if (userExist) {
+                        document.getElementById('authAlertBox').innerHTML = `
+                            <div class="alert alert-danger py-2 small" role="alert">Email sudah terdaftar! Silakan login.</div>`;
+                        return;
+                    }
+
+                    users.push({ nama, email, password });
+                    localStorage.setItem('appUsers', JSON.stringify(users));
+
+                    document.getElementById('authAlertBox').innerHTML = `
+                        <div class="alert alert-success py-2 small" role="alert">Registrasi berhasil! Silakan masuk.</div>`;
+                    formRegister.reset();
+                    
+                    setTimeout(() => {
+                        document.getElementById('toLogin').click();
+                    }, 1200);
+                });
+            }
+
+            // Login Submit
+            const formLogin = document.getElementById('formLogin');
+            if (formLogin) {
+                formLogin.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    let email = document.getElementById('loginEmail').value.trim();
+                    let password = document.getElementById('loginPassword').value.trim();
+
+                    let users = JSON.parse(localStorage.getItem('appUsers')) || [];
+                    if (users.length === 0) {
+                        users.push({ nama: "Administrator", email: "admin@admin.com", password: "123" });
+                        localStorage.setItem('appUsers', JSON.stringify(users));
+                    }
+
+                    let validUser = users.find(u => u.email === email && u.password === password);
+                    if (validUser) {
+                        localStorage.setItem('loggedInUser', validUser.nama);
+                        tampilkanDashboard(validUser.nama);
+                    } else {
+                        document.getElementById('authAlertBox').innerHTML = `
+                            <div class="alert alert-danger py-2 small" role="alert">Email atau Password salah! (Default: admin@admin.com / 123)</div>`;
+                    }
+                });
+            }
+
+            // Logout / Kembali ke Login
+            function prosesLogout() {
+                localStorage.removeItem('loggedInUser');
+                document.getElementById('dashboardSection').classList.add('d-none');
+                document.getElementById('authSection').classList.remove('d-none');
+                if (formLogin) formLogin.reset();
+                document.getElementById('authAlertBox').innerHTML = "";
+            }
+
+            const btnBackToLogin = document.getElementById('btnBackToLogin');
+            if (btnBackToLogin) btnBackToLogin.addEventListener('click', prosesLogout);
+
+            function tampilkanDashboard(namaUser) {
+                document.getElementById('authSection').classList.add('d-none');
+                document.getElementById('dashboardSection').classList.remove('d-none');
+                document.getElementById('userGreeting').innerText = "Halo, " + namaUser;
+                renderTabel();
+            }
+
+            // Navigasi Sidebar Pindah Halaman Terstruktur
+            const navLinks = document.querySelectorAll('.nav-link-custom');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navLinks.forEach(item => item.classList.remove('active'));
+                    this.classList.add('active');
+
+                    let targetPage = this.getAttribute('data-target');
+                    
+                    // Sembunyikan semua halaman
+                    document.querySelectorAll('.page-content').forEach(page => {
+                        page.classList.add('d-none');
+                    });
+
+                    // Tampilkan halaman tujuan
+                    document.getElementById(targetPage).classList.remove('d-none');
+
+                    // Ubah judul di top navbar
+                    let titles = {
+                        'pageDashboard': 'Dasbor Utama',
+                        'pageInput': 'Input Data Baru',
+                        'pageUtama': 'Database Utama',
+                        'pageDouble': 'Data Double (Ganda)'
+                    };
+                    document.getElementById('pageTitle').innerText = titles[targetPage];
+                });
+            });
+
+            // Input Data & Deteksi Double Otomatis
+            const dataForm = document.getElementById('dataForm');
+            if (dataForm) {
+                dataForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const nama = document.getElementById('nama').value.trim();
+                    const bidang = document.getElementById('bidang').value.trim();
+                    const nik = document.getElementById('nik').value.trim();
+                    const alertBox = document.getElementById('alertBox');
+
+                    let dataUtama = JSON.parse(localStorage.getItem('dataUtama_nik')) || [];
+                    let dataDouble = JSON.parse(localStorage.getItem('dataDouble_nik')) || [];
+
+                    let isDouble = dataUtama.some(item => item.nik === nik);
+
+                    if (isDouble) {
+                        dataDouble.push({ nama: nama, bidang: bidang, nik: nik, ket: 'NIK sudah terdaftar sebelumnya' });
+                        localStorage.setItem('dataDouble_nik', JSON.stringify(dataDouble));
+                        
+                        alertBox.innerHTML = `
+                            <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 10px;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                                    <div><strong>Peringatan!</strong> NIK terdeteksi duplikat & otomatis masuk ke Data Double.</div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`;
+                    } else {
+                        dataUtama.push({ nama: nama, bidang: bidang, nik: nik });
+                        localStorage.setItem('dataUtama_nik', JSON.stringify(dataUtama));
+
+                        alertBox.innerHTML = `
+                            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 10px;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-check-circle-fill fs-5"></i>
+                                    <div><strong>Berhasil!</strong> Data baru berhasil disimpan ke Database Utama.</div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`;
+                    }
+
+                    dataForm.reset();
+                    renderTabel();
+                });
+            }
+        });
+
+        // Global function untuk switch page dari tombol di dalam konten
+        function switchPage(targetPage) {
+            document.querySelectorAll('.nav-link-custom').forEach(item => {
+                if(item.getAttribute('data-target') === targetPage) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            document.querySelectorAll('.page-content').forEach(page => page.classList.add('d-none'));
+            document.getElementById(targetPage).classList.remove('d-none');
+            
+            let titles = {
+                'pageDashboard': 'Dasbor Utama',
+                'pageInput': 'Input Data Baru',
+                'pageUtama': 'Database Utama',
+                'pageDouble': 'Data Double (Ganda)'
+            };
+            document.getElementById('pageTitle').innerText = titles[targetPage];
+        }
+
+        // Render Data Tabel & Statistik Terstruktur
+        function renderTabel() {
+            let dataUtama = JSON.parse(localStorage.getItem('dataUtama_nik')) || [];
+            let dataDouble = JSON.parse(localStorage.getItem('dataDouble_nik')) || [];
+
+            // Statistik Counters
+            if(document.getElementById('countUtama1')) document.getElementById('countUtama1').innerText = dataUtama.length;
+            if(document.getElementById('countDouble1')) document.getElementById('countDouble1').innerText = dataDouble.length;
+            if(document.getElementById('badgeCountUtama')) document.getElementById('badgeCountUtama').innerText = dataUtama.length + " Data";
+            if(document.getElementById('badgeCountDouble')) document.getElementById('badgeCountDouble').innerText = dataDouble.length + " Data";
+
+            // Render Tabel Utama
+            let htmlUtama = '';
+            if (dataUtama.length === 0) {
+                htmlUtama = `<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-1"></i>Belum ada data utama</td></tr>`;
+            } else {
+                dataUtama.forEach(item => {
+                    htmlUtama += `<tr>
+                        <td class="fw-semibold">${item.nama}</td>
+                        <td>${item.bidang}</td>
+                        <td class="text-muted">${item.nik}</td>
+                        <td><span class="badge-soft-success">Aktif</span></td>
+                    </tr>`;
+                });
+            }
+            if(document.getElementById('tabelUtama')) document.getElementById('tabelUtama').innerHTML = htmlUtama;
+
+            // Render Tabel Double
+            let htmlDouble = '';
+            if (dataDouble.length === 0) {
+                htmlDouble = `<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-shield-fill-check fs-3 d-block mb-1"></i>Belum ada data double tercatat</td></tr>`;
+            } else {
+                dataDouble.forEach(item => {
+                    htmlDouble += `<tr>
+                        <td class="fw-semibold">${item.nama}</td>
+                        <td>${item.bidang}</td>
+                        <td class="text-muted">${item.nik}</td>
+                        <td><span class="badge-soft-danger"><i class="bi bi-exclamation-circle me-1"></i>${item.ket}</span></td>
+                    </tr>`;
+                });
+            }
+            if(document.getElementById('tabelDouble')) document.getElementById('tabelDouble').innerHTML = htmlDouble;
+        }
+    </script>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
